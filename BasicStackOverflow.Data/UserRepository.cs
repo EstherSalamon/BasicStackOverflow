@@ -15,30 +15,30 @@ namespace BasicStackOverflow.Data
             _connection = connection;
         }
 
-        public void AddUser(User u, string password)
+        public void AddUser(User user, string password)
         {
-            u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
             QandADataContext context = new QandADataContext(_connection);
-            context.Users.Add(u);
+            context.Users.Add(user);
             context.SaveChanges();
         }
 
         public User LogIn(string email, string password)
         {
-            User u = GetByEmail(email);
+            User user = GetByEmail(email);
 
-            if(u == null)
+            if(user == null)
             {
                 return null;
             }
 
-            bool verifyPassword = BCrypt.Net.BCrypt.Verify(password, u.PasswordHash);
+            bool verifyPassword = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
             if(!verifyPassword)
             {
                 return null;
             }
 
-            return u;
+            return user;
         }
 
         public bool EmailExists(string email)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -20,22 +21,26 @@ namespace BasicStackOverflow.Data
 
         public List<Question> GetAll()
         {
-            QandADataContext context = new QandADataContext(_connection);
-            return context.Questions.Include(q => q.Answers).Include(q => q.JoinTags).ThenInclude(qt => qt.Tag).ToList();
+            using QandADataContext context = new QandADataContext(_connection);
+            return context.Questions
+                .Include(q => q.Answers)
+                .Include(q => q.JoinTags)
+                .ThenInclude(qt => qt.Tag)
+                .ToList();
         }
 
         public Tag CheckIfExists(string name)
         {
-            QandADataContext context = new QandADataContext(_connection);
+            using QandADataContext context = new QandADataContext(_connection);
             return context.Tags.FirstOrDefault(t => t.Name == name);
         }
 
-        public void AddQuestion(Question q, List<string> tags)
+        public void AddQuestion(Question question, List<string> tags)
         {
-            QandADataContext context = new QandADataContext(_connection);
-            context.Questions.Add(q);
+            using QandADataContext context = new QandADataContext(_connection);
+            context.Questions.Add(question);
             context.SaveChanges();
-            int questionId = q.Id;
+            int questionId = question.Id;
 
             foreach (var t in tags)
             {
@@ -50,8 +55,6 @@ namespace BasicStackOverflow.Data
 
                 QTJoining qt = new QTJoining
                 {
-                    Question = q,
-                    Tag = check,
                     QuestionId = questionId,
                     TagId = check.Id
                 };
@@ -63,15 +66,43 @@ namespace BasicStackOverflow.Data
 
         public Question GetById(int id)
         {
-            QandADataContext context = new QandADataContext(_connection);
-            return context.Questions.Include(q => q.Answers).Include(q => q.JoinTags).ThenInclude(jt => jt.Tag).FirstOrDefault(q => q.Id == id);
+            using QandADataContext context = new QandADataContext(_connection);
+            return context.Questions
+                .Include(q => q.Answers)
+                .Include(q => q.JoinTags)
+                .ThenInclude(jt => jt.Tag)
+                .FirstOrDefault(q => q.Id == id);
         }
 
-        public void AddAnswer(Answer a)
+        public void AddAnswer(Answer answer)
         {
-            QandADataContext context = new QandADataContext(_connection);
-            context.Answers.Add(a);
+            using QandADataContext context = new QandADataContext(_connection);
+            context.Answers.Add(answer);
             context.SaveChanges();
+        }
+
+        public List<Tag> GetQuestionsByTag(int tagId)
+        {
+            using QandADataContext context = new QandADataContext(_connection);
+            return context.Tags
+                .Where(t => t.Id == tagId)
+                .Include(t => t.JoinQuestions)
+                .ThenInclude(jq => jq.Question)
+                .ThenInclude(q => q.JoinTags)
+                .ThenInclude(jt => jt.Tag)
+                .ToList();
+        }
+
+        public List<Tag> GetAllTags()
+        {
+            using QandADataContext context = new QandADataContext(_connection);
+            return context.Tags.ToList();
+        }
+
+        public List<Answer> GetAnswersById(int questionId)
+        {
+            using QandADataContext context = new QandADataContext(_connection);
+            return context.Answers.Where(a => a.QuestionId == questionId).ToList();
         }
     }
 }

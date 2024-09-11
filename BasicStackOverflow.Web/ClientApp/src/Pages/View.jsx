@@ -18,7 +18,6 @@ const View = () => {
             navigate('/');
         }
         setQuestion(data);
-        console.log(data);
     }
 
     useEffect(() => {
@@ -45,6 +44,12 @@ const View = () => {
         loadData();
     };
 
+    function getGuid() {
+        return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+            (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+        );
+    }
+
     return (
         <div className='container' style={{ marginTop: 80 }}>
             <div className='col-md-8 offset-2'>
@@ -57,13 +62,13 @@ const View = () => {
                         <p>{question.QuestionText}</p>
                         <hr />
                         <h5>Tags: {question.JoinTags && question.JoinTags.map(jt =>
-                            <span key={jt.Tag.id} className='badge text-bg-primary' style={{ marginRight: 2 }}>{jt.Tag.Name}</span>)}</h5>
+                            <span key={`${getGuid()} ${jt.Tag.Id}`} className='badge text-bg-primary' style={{ marginRight: 2 }}>{jt.Tag.Name}</span>)}</h5>
                     </div>
                 </div>
                 <br />
                 <h2>Answers:</h2>
                 {question.Answers ? question.Answers.map(a =>
-                    <div className='card' key={a.id}>
+                    <div className='card' key={`${getGuid()} ${a.id}`}>
                         <div className='card-body'>
                             <h4>{a.AnswerText}</h4>
                             <p>Answered by {a.User.Name}</p>

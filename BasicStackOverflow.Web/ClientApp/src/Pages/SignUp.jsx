@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,11 +25,11 @@ const SignUp = () => {
             <div className='col-md-6 offset-3'>
                 <h2>Sign up for a new account</h2>
                 <hr />
-                <h6 style={{ textDecorationColor: 'red' }}>{message}</h6>
+                <h6 className='text-danger'>{message}</h6>
                 <input type='text' name='name' placeholder='Name' value={name} className='form-control mt-2' onChange={e => setName(e.target.value)} />
                 <input type='email' name='email' placeholder='Email' value={email} className='form-control mt-2' onChange={e => setEmail(e.target.value)} />
                 <input type='password' name='password' placeholder='Password' value={password} className='form-control mt-2' onChange={e => setPassword(e.target.value)} />
-                <button className='btn btn-outline-danger mt-2 w-100' onClick={onButtonClick}>Submit</button>
+                <button className='btn btn-outline-danger mt-2 w-100' disabled={!(name && email && password)} onClick={onButtonClick}>Submit</button>
             </div>
         </div>
     )

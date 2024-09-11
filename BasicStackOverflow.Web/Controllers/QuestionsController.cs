@@ -24,8 +24,8 @@ namespace BasicStackOverflow.Web.Controllers
         public string GetAllQuestions()
         {
             QARepository repo = new QARepository(_connection);
-            List<Question> q = repo.GetAll();
-            string json = JsonConvert.SerializeObject(q, new JsonSerializerSettings
+            List<Question> questions = repo.GetAll();
+            string json = JsonConvert.SerializeObject(questions, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             });
@@ -53,23 +53,23 @@ namespace BasicStackOverflow.Web.Controllers
         public string GetById(int id)
         {
             QARepository repo = new QARepository(_connection);
-            Question q = repo.GetById(id);
+            Question question = repo.GetById(id);
 
-            if(q == null)
+            if(question == null)
             {
                 return null;
             }
 
             UserRepository uRepo = new UserRepository(_connection);
 
-            q.User = uRepo.GetById(q.UserId);
+            question.User = uRepo.GetById(question.UserId);
 
-            foreach(var a in q.Answers)
+            foreach(var a in question.Answers)
             {
                 a.User = uRepo.GetById(a.UserId);
             }
 
-            string json = JsonConvert.SerializeObject(q, new JsonSerializerSettings
+            string json = JsonConvert.SerializeObject(question, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             });
@@ -83,6 +83,37 @@ namespace BasicStackOverflow.Web.Controllers
             vm.Answer.DatePosted = DateTime.Now;
             QARepository repo = new QARepository(_connection);
             repo.AddAnswer(vm.Answer);
+        }
+
+        [HttpGet("searchbytag")]
+        public string GetQuestionsByTag(int tagId)
+        {
+            QARepository repo = new QARepository(_connection);
+            List<Tag> tagList = repo.GetQuestionsByTag(tagId);
+
+            List<Question> disassembledTagList = new List<Question>();
+            foreach(var l in tagList)
+            {
+                List<QTJoining> joinQ = l.JoinQuestions;
+                foreach(var jq in joinQ)
+                {
+                    jq.Question.Answers = repo.GetAnswersById(jq.QuestionId);
+                    disassembledTagList.Add(jq.Question);
+                }
+            }
+
+            string json = JsonConvert.SerializeObject(disassembledTagList, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
+            return json;
+        }
+
+        [HttpGet("gettags")]
+        public List<Tag> GetTags()
+        {
+            QARepository repo = new QARepository(_connection);
+            return repo.GetAllTags();
         }
     }
 }
